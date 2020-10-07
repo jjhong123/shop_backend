@@ -74,7 +74,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('admin')->group(function () {
 
         // 指定商品
-        Route::post('/uploadimg', 'App\Http\Controllers\api\AdminsController@uploadImg');
+        // Route::post('/uploadimg', 'App\Http\Controllers\api\AdminsController@uploadImg');
         // 取得資訊
         Route::group(['middleware' => ['auth:sanctum', 'auth.admin']], function () {
             

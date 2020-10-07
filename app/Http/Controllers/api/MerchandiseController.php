@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use DB;
+use Image;
+
 class MerchandiseController extends Controller
 {
     // 上傳圖片
