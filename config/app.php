@@ -67,7 +67,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // 'timezone' => 'UTC',
+    'timezone' => 'Asia/Taipei',
 
     /*
     |--------------------------------------------------------------------------
@@ -165,6 +166,8 @@ return [
         /*
          * Package Service Providers...
          */
+
+        Intervention\Image\ImageServiceProvider::class,
 
         /*
          * Application Service Providers...
