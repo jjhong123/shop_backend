@@ -117,13 +117,13 @@ Route::prefix('v1')->group(function () {
             Route::prefix('order')->group(function () {
 
                 // 新增訂單
-                Route::post('/', 'App\Http\Controllers\api\AdminsController@createOrder');
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createOrder');
 
                 // 取得訂單
-                Route::get('/', 'App\Http\Controllers\api\AdminsController@getOrder');
+                Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getOrder');
 
                 // 模擬結帳
-                Route::post('/pay', 'App\Http\Controllers\api\AdminsController@completeOrder');
+                Route::post('/pay', 'App\Http\Controllers\api\MerchandiseController@completeOrder');
             });
         });
     });
