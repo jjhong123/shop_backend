@@ -15,75 +15,60 @@ class ProductTableSeeder extends Seeder
     public function run()
     {
         Product::create([
+            'ppid' => "P2020100800281",
             'name' => '衣服一',
+            'unit' => '件',
             'count' => '1',
+            'content' => '世界最偉大的設asda計師親手設計,xxx.<br>世界最偉大asdasdasd的設計師親手設計,xxx.<br>',
             'price' => '400',
-            'status' => 'true',
+            'origin_price' => '350',
+            'status' => '1',
+            'category' => '衣服',
             'description' => '世界最偉大的設計師親手設計,xxx.',
             'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
         ]);
 
         Product::create([
-            'name' => '衣服一',
-            'count' => '3',
-            'price' => '200',
-            'status' => 'true',
+            'ppid' => "P2020100800282",
+            'name' => '衣服二',
+            'unit' => '件',
+            'count' => '34',
+            'content' => '世界最偉大的設asda計師親手設計,xxx.<br>世界最偉大asdasdasd的設計師親手設計,xxx.<br>',
+            'price' => '500',
+            'origin_price' => '300',
+            'status' => '1',
+            'category' => '衣服',
             'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/neXyEo.jpg'
+            'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
         ]);
 
         Product::create([
+            'ppid' => "P2020100800283",
             'name' => '衣服三',
-            'count' => '2',
-            'price' => '100',
-            'status' => 'true',
+            'unit' => '件',
+            'count' => '22',
+            'content' => '世界最偉大的設asda計師親手設計,xxx.<br>世界最偉大asdasdasd的設計師親手設計,xxx.<br>',
+            'price' => '350',
+            'origin_price' => '300',
+            'status' => '1',
+            'category' => '衣服',
             'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/kN178P.jpg'
+            'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
         ]);
 
         Product::create([
+            'ppid' => "P2020100800284",
             'name' => '衣服四',
-            'count' => '4',
-            'price' => '354',
-            'status' => 'true',
+            'unit' => '件',
+            'count' => '11',
+            'content' => '世界最偉大的設asda計師親手設計,xxx.<br>世界最偉大asdasdasd的設計師親手設計,xxx.<br>',
+            'price' => '250',
+            'origin_price' => '200',
+            'status' => '1',
+            'category' => '衣服',
             'description' => '世界最偉大的設計師親手設計,xxx.',
             'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
         ]);
 
-        Product::create([
-            'name' => '衣服五',
-            'count' => '1',
-            'price' => '400',
-            'status' => 'true',
-            'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
-        ]);
-
-        Product::create([
-            'name' => '衣服六',
-            'count' => '3',
-            'price' => '200',
-            'status' => 'true',
-            'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/neXyEo.jpg'
-        ]);
-
-        Product::create([
-            'name' => '衣服七',
-            'count' => '2',
-            'price' => '100',
-            'status' => 'true',
-            'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/kN178P.jpg'
-        ]);
-
-        Product::create([
-            'name' => '衣服八',
-            'count' => '4',
-            'price' => '354',
-            'status' => 'true',
-            'description' => '世界最偉大的設計師親手設計,xxx.',
-            'pimg' => 'https://upload.cc/i1/2020/09/23/muX46J.jpg'
-        ]);
     }
 }

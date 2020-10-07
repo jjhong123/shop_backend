@@ -15,12 +15,17 @@ class CreateProductTable extends Migration
     {
         Schema::create('product', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('price');
-            $table->integer('count');
-            $table->string('description');
-            $table->string('status');
+            $table->string('ppid')->nullable();// ppid
+            $table->string('name');// 名字
+            $table->string('category');// 商品敘述
+            $table->string('unit');// 單位 ex:個
+            $table->string('description');// 產品說明
+            $table->text('content');// 產品敘述
+            $table->integer('status');// 是否上架
             $table->string('pimg')->nullable();
+            $table->integer('price');// 售價
+            $table->integer('origin_price');// 原價
+            $table->integer('count');// 數量
             $table->timestamps();
         });
     }

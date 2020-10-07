@@ -15,6 +15,10 @@ class CreateOrderTable extends Migration
     {
         Schema::create('order', function (Blueprint $table) {
             $table->id();
+            $table->string('ooid');// ppid
+            $table->string('uuid');// ppid
+            $table->integer('status');// 是否上架
+            $table->integer('total');// 售價
             $table->timestamps();
         });
     }

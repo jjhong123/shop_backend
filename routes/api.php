@@ -22,9 +22,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
-
-
-
     // 商品瀏覽
     Route::get('getproduct', 'App\Http\Controllers\api\UserController@getProduct');
 
@@ -75,6 +72,7 @@ Route::prefix('v1')->group(function () {
 
     //管理者
     Route::prefix('admin')->group(function () {
+
         // 指定商品
         Route::post('/uploadimg', 'App\Http\Controllers\api\AdminsController@uploadImg');
         // 取得資訊
@@ -82,37 +80,37 @@ Route::prefix('v1')->group(function () {
             
             Route::prefix('products')->group(function () {
                 // 新增產品
-                Route::post('/', 'App\Http\Controllers\api\AdminsController@createProduct');
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createProduct');
                 // 刪除產品
-                Route::delete('/', 'App\Http\Controllers\api\AdminsController@deleteProduct');
+                Route::delete('/', 'App\Http\Controllers\api\MerchandiseController@deleteProduct');
                 // 更新產品
-                Route::put('/', 'App\Http\Controllers\api\AdminsController@updateProduct');
+                Route::put('/', 'App\Http\Controllers\api\MerchandiseController@updateProduct');
                 // 取得產品
-                Route::get('/', 'App\Http\Controllers\api\AdminsController@getProduct');
+                Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getProduct');
                 // 上傳圖片
-                Route::post('/uploadimg', 'App\Http\Controllers\api\AdminsController@uploadImg');
+                Route::post('/uploadimg', 'App\Http\Controllers\api\MerchandiseController@uploadImg');
             });
 
             Route::prefix('coupon')->group(function () {
                 // 新增折價卷
-                Route::post('/', 'App\Http\Controllers\api\AdminsController@createCoupon');
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createCoupon');
                 // 刪除折價卷
-                Route::delete('/', 'App\Http\Controllers\api\AdminsController@deleteCoupon');
+                Route::delete('/', 'App\Http\Controllers\api\MerchandiseController@deleteCoupon');
                 // 更新折價卷
-                Route::put('/', 'App\Http\Controllers\api\AdminsController@updateCoupon');
+                Route::put('/', 'App\Http\Controllers\api\MerchandiseController@updateCoupon');
                 // 取得折價卷
-                Route::get('/', 'App\Http\Controllers\api\AdminsController@getCoupon');
+                Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getCoupon');
             });
 
             Route::prefix('cart')->group(function () {
                 // 新增購物車
-                Route::post('/cart', 'App\Http\Controllers\api\AdminsController@createCart');
+                Route::post('/cart', 'App\Http\Controllers\api\MerchandiseController@createCart');
                 // 刪除購物車
-                Route::delete('/cart', 'App\Http\Controllers\api\AdminsController@deleteCart');
+                Route::delete('/cart', 'App\Http\Controllers\api\MerchandiseController@deleteCart');
                 // 更新購物車
-                Route::put('/cart', 'App\Http\Controllers\api\AdminsController@updateCart');
+                Route::put('/cart', 'App\Http\Controllers\api\MerchandiseController@updateCart');
                 // 取得購物車
-                Route::get('/cart', 'App\Http\Controllers\api\AdminsController@getCart');
+                Route::get('/cart', 'App\Http\Controllers\api\MerchandiseController@getCart');
             });
 
             // 模擬類

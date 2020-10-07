@@ -15,7 +15,17 @@ class Product extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'price', 'count', 'pimg', 'description', 'status'
+        'ppid',
+        'name', // 名字
+        'unit', // 單位
+        'origin_price', //原價
+        'category', // 售價
+        'content', // 產品說明
+        'price', // 價格
+        'count', // 剩餘數量
+        'pimg', // 圖片
+        'description', // 產品
+        'status' // 產品是否上架
     ];
 
     /**

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use DB;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\Product;
 
 class UserController extends Controller
 {
@@ -53,16 +54,36 @@ class UserController extends Controller
      */
     public function Register(Request $request)
     {
-        $user = User::Create([
-            "email" => $request["email"],
-            "name" => $request["name"],
-            "password" => Hash::make($request["password"]),
-            "roles" => "guest"
+
+        $request->validate([
+            'email' => 'required',
+            'password' => 'required',
         ]);
 
-        return response()->json($user, 200);
-    }
+        try {
 
+            $results = DB::select('select count(*) from users where email = ?', array($request["email"]));
+
+            if ($results == 0) {
+                $results = DB::table('users')->count();
+                $user = User::Create([
+                    "email" => $request["email"],
+                    "name" => $request["name"],
+                    "uuid" => "U" . date("Y") . date("m") . date("d") . date("H") . date("i") . ($results + 1),
+                    "password" => Hash::make($request["password"]),
+                    "roles" => "guest",
+                ]);
+                return response()->json($user, 200);
+
+            } else {
+                throw new Exception("已有人註冊過囉!");
+            }
+
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()],500);
+        }
+
+    }
 
     /**
      * 取得用戶資訊
@@ -72,10 +93,9 @@ class UserController extends Controller
      */
     public function getUser(Request $request)
     {
-
         return response()->json([
             'success' => true,
-            'data' => $request->user()
+            'data' => $request->user(),
         ], 200);
     }
 }
