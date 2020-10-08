@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Image;
@@ -217,7 +218,7 @@ class MerchandiseController extends Controller
             // 如果 購物車
             $data["total_price"] = $data["total_price"] + ($value->count * $value->price);
         }
-        
+
         return response()->json($data, 200);
     }
 
@@ -234,11 +235,10 @@ class MerchandiseController extends Controller
         ]);
 
         $product_data = DB::select('SELECT * FROM product WHERE ppid = ?', [$request->ppid]);
-
         $cart_data = DB::select('SELECT * FROM cart WHERE ppid = ? AND uuid = ?', [$request->ppid, $request->user()->uuid]);
 
-        if (empty($cart_data)) {
-            $data["result"] = DB::insert('insert into cart (uuid,ppid,name,category,unit,description,content,pimg,price,count) values (?,?,?,?,?,?,?,?,?,?) ', [
+        if (empty($cart_data)&&!empty($product_data)) {
+            $data["result"] = DB::insert('insert into cart (uuid,ppid,name,category,unit,description,content,pimg,price,count,created_at,updated_at) values (?,?,?,?,?,?,?,?,?,?,?,?) ', [
                 $request->user()->uuid,
                 $product_data[0]->ppid,
                 $product_data[0]->name,
@@ -249,11 +249,13 @@ class MerchandiseController extends Controller
                 $product_data[0]->pimg,
                 $product_data[0]->price,
                 1,
+                Carbon::now(),
+                Carbon::now(),
             ]);
             return response()->json($data, 200);
 
         } else {
-            return response()->json(["message" => '已在購物車裡'], 500);
+            return response()->json(["message" => '已在購物車裡,或不存在此商品'], 500);
         }
 
     }
@@ -326,4 +328,101 @@ class MerchandiseController extends Controller
             ]);
         }
     }
+
+    /**
+     * 新增訂單
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function createOrder(Request $request)
+    {
+
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
+        ]);
+
+        $cart_data = DB::select('select * from cart where uuid = ?', [$request->user()->uuid]);
+
+        $data["cart_list"] = $cart_data;
+        $data["total_price"] = 0;
+
+        if (!empty($cart_data)) {
+
+            foreach ($cart_data as $value) {
+                $data["total_price"] = $data["total_price"] + ($value->count * $value->price);
+            }
+
+            $results = DB::table('order')->count();
+            $ooid = "O" . date("Y") . date("m") . date("d") . date("H") . date("i") . ($results + 1);
+            $data["result"] = DB::insert('INSERT INTO `order` (ooid,uuid,total,status,email,name,phone,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?) ', [
+                $ooid,
+                $request->user()->uuid,
+                $data["total_price"],
+                0,
+                $request->user()->email,
+                $request->name,
+                $request->phone,
+                Carbon::now(),
+                Carbon::now(),
+            ]);
+
+            foreach ($cart_data as $value) {
+
+                $cart_data = DB::insert('INSERT INTO order_item (uuid,ooid,ppid,name,price,count,pimg,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)', [
+                    $request->user()->uuid,
+                    $ooid,
+                    $value->ppid,
+                    $value->name,
+                    $value->price,
+                    $value->count,
+                    $value->pimg,
+                    Carbon::now(),
+                    Carbon::now(),
+                ]);
+
+                $data["product"] = DB::table('product')
+                    ->where('ppid', $request->ppid)
+                    ->update(['count' => $value->count]);
+            }
+
+            $data["cart"] = DB::table('cart')
+                ->where('uuid', $request->user()->uuid)
+                ->delete();
+
+            $data['message'] = '新增訂單成功!';
+
+            return response()->json($data, 200);
+
+        } else {
+            return response()->json('購物車不得為空', 200);
+        }
+    }
+
+    /**
+     * 取得所有訂單
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getOrder(Request $request)
+    {
+        // 每頁資料量
+        $row_per_page = 10;
+
+        // 撈取商品分頁資料
+        $OrderPaginate = DB::table('order')->paginate($row_per_page);
+
+        foreach ($OrderPaginate as $value) {
+            $value->cr_at = Carbon::parse($value->created_at)->diffForHumans();
+            $value->products = DB::select('select * from order_item where uuid = ? and ooid = ?', [$value->uuid, $value->ooid]);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => $OrderPaginate,
+        ], 200);
+    }
+
 }
