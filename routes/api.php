@@ -91,26 +91,15 @@ Route::prefix('v1')->group(function () {
                 Route::post('/uploadimg', 'App\Http\Controllers\api\MerchandiseController@uploadImg');
             });
 
-            Route::prefix('coupon')->group(function () {
-                // 新增折價卷
-                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createCoupon');
-                // 刪除折價卷
-                Route::delete('/', 'App\Http\Controllers\api\MerchandiseController@deleteCoupon');
-                // 更新折價卷
-                Route::put('/', 'App\Http\Controllers\api\MerchandiseController@updateCoupon');
-                // 取得折價卷
-                Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getCoupon');
-            });
-
             Route::prefix('cart')->group(function () {
                 // 新增購物車
-                Route::post('/cart', 'App\Http\Controllers\api\MerchandiseController@createCart');
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createCart');
                 // 刪除購物車
-                Route::delete('/cart', 'App\Http\Controllers\api\MerchandiseController@deleteCart');
+                Route::delete('/', 'App\Http\Controllers\api\MerchandiseController@deleteCart');
                 // 更新購物車
-                Route::put('/cart', 'App\Http\Controllers\api\MerchandiseController@updateCart');
+                Route::put('/', 'App\Http\Controllers\api\MerchandiseController@updateCart');
                 // 取得購物車
-                Route::get('/cart', 'App\Http\Controllers\api\MerchandiseController@getCart');
+                Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getCart');
             });
 
             // 模擬類

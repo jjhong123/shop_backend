@@ -4,8 +4,8 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use DB;
+use Illuminate\Http\Request;
 use Image;
 
 class MerchandiseController extends Controller
@@ -21,10 +21,10 @@ class MerchandiseController extends Controller
         $rules = [
             // 商品照片
             'photo' => [
-                'file',         // 必須為檔案
-                'image',        // 必須為圖片
-                'max: 10240',   // 10 MB
-            ]
+                'file', // 必須為檔案
+                'image', // 必須為圖片
+                'max: 10240', // 10 MB
+            ],
         ];
 
         // 驗證資料
@@ -62,22 +62,21 @@ class MerchandiseController extends Controller
                 return response()->json([
                     'success' => true,
                     'fileName' => $file_name,
-                    'data' => $Product
+                    'data' => $Product,
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
-                    'type' => '格式錯誤'
+                    'type' => '格式錯誤',
                 ], 500);
             }
         }
 
         return response()->json([
             'success' => false,
-            'type' => '格式錯誤'
+            'type' => '格式錯誤',
         ], 500);
     }
-
 
     /**
      * 新增產品
@@ -135,6 +134,7 @@ class MerchandiseController extends Controller
      */
     public function getProduct(Request $request)
     {
+
         // 每頁資料量
         $row_per_page = 10;
 
@@ -199,5 +199,131 @@ class MerchandiseController extends Controller
         ]);
         $deletedRows = Product::where('id', $request->ppid)->delete();
         return response()->json("已刪除 " . $deletedRows . " 項產品", 200);
+    }
+
+    /**
+     * 取得購物車
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getCart(Request $request)
+    {
+        $cart_data = DB::select('select * from cart where uuid = ?', [$request->user()->uuid]);
+        $data["cart_list"] = $cart_data;
+        $data["total_price"] = 0;
+
+        foreach ($cart_data as $value) {
+            // 如果 購物車
+            $data["total_price"] = $data["total_price"] + ($value->count * $value->price);
+        }
+        
+        return response()->json($data, 200);
+    }
+
+    /**
+     * 新增購物車
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function createCart(Request $request)
+    {
+        $request->validate([
+            'ppid' => 'required',
+        ]);
+
+        $product_data = DB::select('SELECT * FROM product WHERE ppid = ?', [$request->ppid]);
+
+        $cart_data = DB::select('SELECT * FROM cart WHERE ppid = ? AND uuid = ?', [$request->ppid, $request->user()->uuid]);
+
+        if (empty($cart_data)) {
+            $data["result"] = DB::insert('insert into cart (uuid,ppid,name,category,unit,description,content,pimg,price,count) values (?,?,?,?,?,?,?,?,?,?) ', [
+                $request->user()->uuid,
+                $product_data[0]->ppid,
+                $product_data[0]->name,
+                $product_data[0]->category,
+                $product_data[0]->unit,
+                $product_data[0]->description,
+                $product_data[0]->content,
+                $product_data[0]->pimg,
+                $product_data[0]->price,
+                1,
+            ]);
+            return response()->json($data, 200);
+
+        } else {
+            return response()->json(["message" => '已在購物車裡'], 500);
+        }
+
+    }
+
+    /**
+     * 更新購物車
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  id  $id
+     * @param  count  $count
+     * @param  type  $type
+     * @return \Illuminate\Http\Response
+     */
+    public function updateCart(Request $request)
+    {
+        $request->validate([
+            'ppid' => 'required',
+            'count' => 'required',
+        ]);
+
+        if (isset($request->count)) {
+
+            $remaining_count = DB::select('select count from product where ppid = ?', [$request->ppid]);
+
+            if ($remaining_count[0]->count >= $request->count) {
+
+                $data["results"] = DB::table('cart')
+                    ->where('uuid', $request->user()->uuid)
+                    ->where('ppid', $request->ppid)
+                    ->update(['count' => $request->count]);
+
+                return response()->json($data, 200);
+
+            } else {
+                return response()->json([
+                    "message" => '庫存最多' . $remaining_count[0]->count,
+                ], 500);
+            }
+
+        }
+
+    }
+
+    /**
+     * 刪除購物車
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  id  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteCart(Request $request)
+    {
+        $request->validate([
+            'ppid' => 'required',
+        ]);
+
+        $remaining_count = DB::select('select * from cart where ppid = ? and uuid = ?', [$request->ppid, $request->user()->uuid]);
+
+        if (!empty($remaining_count)) {
+
+            $data["cart"] = DB::table('cart')
+                ->where('uuid', $request->user()->uuid)
+                ->where('ppid', $request->ppid)
+                ->delete();
+
+            return response()->json($data, 200);
+        } else {
+            throw ValidationException::withMessages([
+                'error' => ['找不到此產品'],
+            ]);
+        }
     }
 }
