@@ -20,6 +20,7 @@ class CreateOrderTable extends Migration
             $table->integer('status');// 是否上架
             $table->integer('total');// 售價
             $table->string('email');// email
+            $table->string('address');// address
             $table->string('name');// name
             $table->string('phone');// phone
             $table->timestamps();

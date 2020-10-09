@@ -8,78 +8,10 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Image;
 use \ECPay_PaymentMethod as ECPayMethod;
 
-class MerchandiseController extends Controller
+class MerchandiseUserController extends Controller
 {
-    // 上傳圖片
-    public function uploadImg(Request $request)
-    {
-
-        $Product = Product::where('ppid', $request->ppid)->firstOrFail();
-
-        $input = request()->all();
-
-        $rules = [
-            // 商品照片
-            'photo' => [
-                'file', // 必須為檔案
-                'image', // 必須為圖片
-                'max: 10240', // 10 MB
-            ],
-        ];
-
-        // 驗證資料
-        $validator = Validator::make($input, $rules);
-
-        if ($validator->fails()) {
-            // 資料驗證錯誤
-            return ['success' => false, 'error_Message' => $validator->errors()->all()];
-        }
-
-        if ($request->hasFile('photo')) {
-            // $fileName = $file->getClientOriginalName();
-            if (isset($input['photo'])) {
-                // 有上傳圖片
-                $photo = $input['photo'];
-                // 檔案副檔名
-                $file_extension = $photo->getClientOriginalExtension();
-                // 產生自訂隨機檔案名稱
-                $file_name = uniqid() . '.' . $file_extension;
-                // 檔案相對路徑
-                $file_relative_path = 'images/merchandise/' . $file_name;
-                // 檔案存放目錄為對外公開 public 目錄下的相對位置
-                $file_path = public_path($file_relative_path);
-                // 裁切圖片
-                // $image = Image::make($photo)->fit(450, 300)->save($file_path);
-                $image = Image::make($photo)->save($file_path);
-                // 設定圖片檔案相對位置
-                $input['photo'] = $file_relative_path;
-                // 商品資料更新
-                // $Product->update(['pimg' => $input['photo']]);
-                $Product->update(['pimg' => url($input['photo'])]);
-                // 設定路經
-                $Product["pimg"] = url($Product["pimg"]);
-
-                return response()->json([
-                    'success' => true,
-                    'fileName' => $file_name,
-                    'data' => $Product,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'type' => '格式錯誤',
-                ], 500);
-            }
-        }
-
-        return response()->json([
-            'success' => false,
-            'type' => '格式錯誤',
-        ], 500);
-    }
 
     /**
      * 新增產品
@@ -142,7 +74,7 @@ class MerchandiseController extends Controller
         $row_per_page = 10;
 
         // 撈取商品分頁資料
-        $ProductPaginate = Product::OrderBy('updated_at', 'desc')
+        $ProductPaginate = Product::where('status', 1)->orderBy('updated_at', 'desc')
             ->paginate($row_per_page);
 
         // 設定商品圖片網址
@@ -217,6 +149,8 @@ class MerchandiseController extends Controller
         $data["total_price"] = 0;
 
         foreach ($cart_data as $value) {
+            $count = DB::select('select count from product where ppid = ?', [$value->ppid]);
+            $value->remaining_number = $count[0]->count;
             // 如果 購物車
             $data["total_price"] = $data["total_price"] + ($value->count * $value->price);
         }
@@ -387,12 +321,12 @@ class MerchandiseController extends Controller
                 $obj->EncryptType = '1'; //CheckMacValue加密類型，請固定填入1，使用SHA256加密
                 //基本參數(請依系統規劃自行調整)
                 $MerchantTradeNo = Str::random(10);
-                $obj->Send['ReturnURL'] = "https://d94a9fda83fa.ngrok.io/shop/public/api/v1/callback"; //付款完成通知回傳的網址
-                $obj->Send['PeriodReturnURL'] = "https://d94a9fda83fa.ngrok.io/shop/public/api/v1/callback"; //付款完成通知回傳的網址
-                $obj->Send['ClientBackURL'] = " https://d94a9fda83fa.ngrok.io/shop/public/api/v1/success"; //付款完成通知回傳的網址
+                $obj->Send['ReturnURL'] = "https://476c9a3056a8.ngrok.io/github/shop_backend/public/api/v1/callback"; //付款完成通知回傳的網址
+                $obj->Send['PeriodReturnURL'] = "https://476c9a3056a8.ngrok.io/github/shop_backend/public/api/v1/callback"; //付款完成通知回傳的網址
+                $obj->Send['ClientBackURL'] = " https://476c9a3056a8.ngrok.io/github/shop_backend/public/api/v1/success"; //付款完成通知回傳的網址
                 $obj->Send['MerchantTradeNo'] = $MerchantTradeNo; //訂單編號
                 $obj->Send['MerchantTradeDate'] = date('Y/m/d H:i:s'); //交易時間
-                $obj->Send['TotalAmount'] = 500; //交易金額
+                $obj->Send['TotalAmount'] = $data["total_price"]; //交易金額
                 $obj->Send['TradeDesc'] = "good to drink"; //交易描述
                 $obj->Send['ChoosePayment'] = ECPayMethod::Credit; //付款方式:Credit
                 $obj->Send['IgnorePayment'] = ECPayMethod::GooglePay; //不使用付款方式:GooglePay
@@ -422,20 +356,13 @@ class MerchandiseController extends Controller
                         ->where('ppid', $request->ppid)
                         ->update(['count' => $value->count]);
                 }
-
-                return response()->json($obj, 200);
-                // $obj->CheckOut();
+                $data["cart"] = DB::table('cart')
+                    ->where('uuid', $request->user()->uuid)
+                    ->delete();
+                return response()->json($obj->CheckOutString(), 200);
             } catch (Exception $e) {
                 echo $e->getMessage();
             }
-
-            $data["cart"] = DB::table('cart')
-                ->where('uuid', $request->user()->uuid)
-                ->delete();
-
-            $data['message'] = '新增訂單成功!';
-
-            return response()->json($data, 200);
 
         } else {
             return response()->json('購物車不得為空', 200);
@@ -458,120 +385,12 @@ class MerchandiseController extends Controller
 
         foreach ($OrderPaginate as $value) {
             $value->cr_at = Carbon::parse($value->created_at)->diffForHumans();
-            // $value->cr_ats = $value->created_at->format('Y-m-d H:i:s');
             $value->products = DB::select('select * from order_item where uuid = ? and ooid = ?', [$value->uuid, $value->ooid]);
         }
         return response()->json([
             'success' => true,
             'data' => $OrderPaginate,
         ], 200);
-    }
-
-    /**
-     * 模擬付款
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     * @param  ooid  $ooid
-     */
-
-    public function Simulationpay(Request $request)
-    {
-        $request->validate([
-            'ooid' => 'required',
-        ]);
-
-        $order_item_data = DB::select('select * from order_item where ooid = ? and uuid = ?', [$request->ooid, $request->user()->uuid]);
-
-        $data["cart_list"] = $order_item_data;
-        $data["total_price"] = 0;
-
-        if (!empty($order_item_data)) {
-
-            foreach ($order_item_data as $value) {
-                $data["total_price"] = $data["total_price"] + ($value->count * $value->price);
-            }
-
-            $results = DB::table('order')->count();
-            $ooid = $request->ooid;
-            $uuid = $request->user()->uuid;
-
-            // 綠界
-            try {
-                $obj = new \ECPay_AllInOne();
-
-                //服務參數
-                $obj->ServiceURL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"; //服務位置
-                $obj->HashKey = '5294y06JbISpM5x9'; //測試用Hashkey，請自行帶入ECPay提供的HashKey
-                $obj->HashIV = 'v77hoKGq4kWxNNIS'; //測試用HashIV，請自行帶入ECPay提供的HashIV
-                $obj->MerchantID = '2000132'; //測試用MerchantID，請自行帶入ECPay提供的MerchantID
-                $obj->EncryptType = '1'; //CheckMacValue加密類型，請固定填入1，使用SHA256加密
-                //基本參數(請依系統規劃自行調整)
-                $MerchantTradeNo = Str::random(10);
-                $obj->Send['ReturnURL'] = "https://476c9a3056a8.ngrok.io/github/shop_backend/public/api/v1/callback"; //付款完成通知回傳的網址
-                $obj->Send['PeriodReturnURL'] = "https://476c9a3056a8.ngrok.io/github/shop_backend/api/v1/callback"; //付款完成通知回傳的網址
-                $obj->Send['ClientBackURL'] = " https://476c9a3056a8.ngrok.io/github/shop_backend//api/v1/success"; //付款完成通知回傳的網址
-                $obj->Send['MerchantTradeNo'] = $MerchantTradeNo; //訂單編號
-                $obj->Send['MerchantTradeDate'] = date('Y/m/d H:i:s'); //交易時間
-                $obj->Send['TotalAmount'] = $data["total_price"]; //交易金額
-                $obj->Send['TradeDesc'] = "good to drink"; //交易描述
-                $obj->Send['ChoosePayment'] = ECPayMethod::Credit; //付款方式:Credit
-                $obj->Send['IgnorePayment'] = ECPayMethod::GooglePay; //不使用付款方式:GooglePay
-                $obj->Send['CustomField1'] = $ooid;
-                $obj->Send['CustomField2'] = $uuid;
-
-                foreach ($order_item_data as $value) {
-
-                    array_push($obj->Send['Items'], array(
-                        'Name' => $value->name, 'Price' => $value->price,
-                        'Currency' => "元", 'Quantity' => (int) $value->count, 'URL' => "dedwed",
-                    ));
-
-                }
-
-                return response()->json($obj->CheckOutString(), 200);
-
-            } catch (Exception $e) {
-                echo $e->getMessage();
-            }
-
-            $data['message'] = '新增訂單成功!';
-
-            return response()->json($data, 200);
-
-        } else {
-            return response()->json('訂單項目', 200);
-        }
-    }
-
-    /**
-     * 模擬付款
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     * @param  ooid  $ooid
-     */
-
-    public function Simulationpaycallback(Request $request)
-    {
-
-        $data["order"] = DB::table('order')
-            ->where('ooid', $request["CustomField1"])
-            ->where('uuid', $request["CustomField2"])
-            ->update(['status' => 1]);
-
-        $order_item_data = DB::select('select * from order_item where ooid = ? and uuid = ?', [$request["CustomField1"], $request["CustomField2"]]);
-
-        foreach ($order_item_data as $value) {
-
-            $product_data = DB::select('select count from product where ppid = ?', [$value->ppid]);
-
-            $data["product"] = DB::table('product')
-                ->where('ppid', $value->ppid)
-                ->update(['count' => $product_data->count - $value->count]);
-        }
-
-        return response()->json('success', 200);
     }
 
     public function callback(Request $request)

@@ -23,7 +23,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
 
     // 商品瀏覽
-    Route::get('getproduct', 'App\Http\Controllers\api\UserController@getProduct');
+    Route::get('getproduct', 'App\Http\Controllers\api\MerchandiseUserController@getProduct');
+
+    // 測試綠界
+    Route::post('/callback', 'App\Http\Controllers\api\MerchandiseUserController@callback');
+    Route::get('/success', 'App\Http\Controllers\api\MerchandiseUserController@redirectFromECpay');
 
     Route::prefix('user')->group(function () {
         // 註冊
@@ -37,35 +41,27 @@ Route::prefix('v1')->group(function () {
 
             Route::prefix('products')->group(function () {
                 // 指定商品
-                Route::post('/uploadimg', 'App\Http\Controllers\api\AdminsController@uploadImg');
+                Route::post('/uploadimg', 'App\Http\Controllers\api\MerchandiseUserController@uploadImg');
             });
 
             Route::prefix('cart')->group(function () {
                 // 新增購物車
-                Route::post('/', 'App\Http\Controllers\api\UserController@createCart');
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseUserController@createCart');
                 // 刪除購物車
-                Route::delete('/', 'App\Http\Controllers\api\UserController@deleteCart');
+                Route::delete('/', 'App\Http\Controllers\api\MerchandiseUserController@deleteCart');
                 // 更新購物車
-                Route::put('/', 'App\Http\Controllers\api\UserController@updateCart');
+                Route::put('/', 'App\Http\Controllers\api\MerchandiseUserController@updateCart');
                 // 取得購物車
-                Route::get('/', 'App\Http\Controllers\api\UserController@getCart');
+                Route::get('/', 'App\Http\Controllers\api\MerchandiseUserController@getCart');
             });
-
-            // 購物車使用折價卷
-            Route::post('/usecoupon', 'App\Http\Controllers\api\UserController@useCoupon');
-            // 購物車取消折價卷
-            Route::post('/disablecoupon', 'App\Http\Controllers\api\UserController@disableCoupon');
 
             // 訂單處理
             Route::prefix('order')->group(function () {
 
                 // 新增訂單
-                Route::post('/', 'App\Http\Controllers\api\UserController@createOrder');
-
+                Route::post('/', 'App\Http\Controllers\api\MerchandiseUserController@createOrder');
                 
-            });
-
-          
+            });          
 
         });
     });
@@ -105,15 +101,15 @@ Route::prefix('v1')->group(function () {
             // 模擬類
             Route::prefix('order')->group(function () {
 
-                // 新增訂單
-                Route::post('/', 'App\Http\Controllers\api\MerchandiseController@createOrder');
-
                 // 取得訂單
                 Route::get('/', 'App\Http\Controllers\api\MerchandiseController@getOrder');
 
                 // 模擬結帳
-                Route::post('/pay', 'App\Http\Controllers\api\MerchandiseController@completeOrder');
+                Route::post('/pay', 'App\Http\Controllers\api\MerchandiseController@Simulationpay');
             });
+
+            
+
         });
     });
 });

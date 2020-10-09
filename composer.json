@@ -39,7 +39,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+         "classmap": [
+            "app/ECPaySDK"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
